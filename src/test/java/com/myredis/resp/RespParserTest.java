@@ -83,4 +83,40 @@ class RespParserTest {
     
         assertEquals("hello", bulkString.getValue());
     }
+    @Test
+    void shouldParseEmptyBulkString() throws Exception {
+    
+        String input = "$0\r\n\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespValue value = parser.parse();
+    
+        RespBulkString bulkString = (RespBulkString) value;
+    
+        assertEquals("", bulkString.getValue());
+    }
+    @Test
+    void shouldParseBulkStringWithMultipleWords() throws Exception {
+    
+        String input = "$11\r\nhello world\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespValue value = parser.parse();
+    
+        RespBulkString bulkString = (RespBulkString) value;
+    
+        assertEquals("hello world", bulkString.getValue());
+    }
 }
