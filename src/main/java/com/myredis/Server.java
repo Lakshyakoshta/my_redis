@@ -56,7 +56,11 @@ public class Server {
 
             System.out.println("Client connected!");
 
-            handleClient(clientSocket);
+            Thread clientThread = new Thread(
+                        () -> handleClient(clientSocket)
+            );
+
+            clientThread.start();
         }
     }
 

@@ -1,11 +1,12 @@
 package com.myredis.store;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DataStore {
 
-    private final Map<String, String> data = new HashMap<>();
+    private final Map<String, String> data =
+            new ConcurrentHashMap<>();
 
     public void set(String key, String value) {
         data.put(key, value);

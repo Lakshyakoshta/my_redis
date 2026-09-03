@@ -72,4 +72,52 @@ class DataStoreTest {
                 store.get("name")
         );
     }
+    @Test
+    void shouldSupportConcurrentWrites()
+            throws Exception {
+    
+        DataStore store =
+                new DataStore();
+    
+        int threadCount = 10;
+    
+        Thread[] threads =
+                new Thread[threadCount];
+    
+        for (int i = 0; i < threadCount; i++) {
+    
+            final int threadNumber = i;
+    
+            threads[i] =
+                    new Thread(() -> {
+    
+                        for (int j = 0; j < 100; j++) {
+    
+                            store.set(
+                                    "key-" + threadNumber + "-" + j,
+                                    "value"
+                            );
+                        }
+                    });
+    
+            threads[i].start();
+        }
+    
+        for (Thread thread : threads) {
+            thread.join();
+        }
+    
+        for (int i = 0; i < threadCount; i++) {
+    
+            for (int j = 0; j < 100; j++) {
+    
+                assertEquals(
+                        "value",
+                        store.get(
+                                "key-" + i + "-" + j
+                        )
+                );
+            }
+        }
+    }
 }

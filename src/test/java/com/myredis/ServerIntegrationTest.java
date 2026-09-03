@@ -210,4 +210,144 @@ class ServerIntegrationTest {
             );
         }
     }
+    @Test
+    void shouldHandleMultipleClients()
+            throws Exception {
+    
+        try (
+                Socket client1 =
+                        new Socket("localhost", 6379);
+    
+                Socket client2 =
+                        new Socket("localhost", 6379)
+        ) {
+    
+            InputStream input1 =
+                    client1.getInputStream();
+    
+            OutputStream output1 =
+                    client1.getOutputStream();
+    
+            InputStream input2 =
+                    client2.getInputStream();
+    
+            OutputStream output2 =
+                    client2.getOutputStream();
+    
+            RespParser parser1 =
+                    new RespParser(input1);
+    
+            RespParser parser2 =
+                    new RespParser(input2);
+    
+            // Client 1
+            output1.write(
+                    (
+                            "*3\r\n" +
+                            "$3\r\n" +
+                            "SET\r\n" +
+                            "$3\r\n" +
+                            "foo\r\n" +
+                            "$3\r\n" +
+                            "bar\r\n"
+                    ).getBytes(StandardCharsets.UTF_8)
+            );
+    
+            output1.flush();
+    
+            RespValue response1 =
+                    parser1.parse();
+    
+            RespSimpleString result1 =
+                    assertInstanceOf(
+                            RespSimpleString.class,
+                            response1
+                    );
+    
+            assertEquals(
+                    "OK",
+                    result1.getValue()
+            );
+    
+            // Client 2
+            output2.write(
+                    (
+                            "*2\r\n" +
+                            "$3\r\n" +
+                            "GET\r\n" +
+                            "$3\r\n" +
+                            "foo\r\n"
+                    ).getBytes(StandardCharsets.UTF_8)
+            );
+    
+            output2.flush();
+    
+            RespValue response2 =
+                    parser2.parse();
+    
+            RespBulkString result2 =
+                    assertInstanceOf(
+                            RespBulkString.class,
+                            response2
+                    );
+    
+            assertEquals(
+                    "bar",
+                    result2.getValue()
+            );
+        }
+    }
+    @Test
+    void shouldHandleSecondClientWhileFirstClientIsIdle()
+            throws Exception {
+    
+        try (
+                Socket client1 =
+                        new Socket("localhost", 6379)
+        ) {
+    
+            // Client 1 connects but sends nothing.
+            // The server should be waiting for input from
+            // client 1.
+    
+            try (
+                    Socket client2 =
+                            new Socket("localhost", 6379)
+            ) {
+    
+                InputStream input2 =
+                        client2.getInputStream();
+    
+                OutputStream output2 =
+                        client2.getOutputStream();
+    
+                RespParser parser2 =
+                        new RespParser(input2);
+    
+                output2.write(
+                        (
+                                "*1\r\n" +
+                                "$4\r\n" +
+                                "PING\r\n"
+                        ).getBytes(StandardCharsets.UTF_8)
+                );
+    
+                output2.flush();
+    
+                RespValue response =
+                        parser2.parse();
+    
+                RespSimpleString result =
+                        assertInstanceOf(
+                                RespSimpleString.class,
+                                response
+                        );
+    
+                assertEquals(
+                        "PONG",
+                        result.getValue()
+                );
+            }
+        }
+    }
 }
