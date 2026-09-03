@@ -65,4 +65,22 @@ class RespParserTest {
     
         assertEquals("ERR unknown command", error.getMessage());
     }
+    @Test
+    void shouldParseBulkString() throws Exception {
+    
+        String input = "$5\r\nhello\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespValue value = parser.parse();
+    
+        RespBulkString bulkString = (RespBulkString) value;
+    
+        assertEquals("hello", bulkString.getValue());
+    }
 }

@@ -3,6 +3,7 @@ package com.myredis.resp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets;
 
 public class RespParser {
 
@@ -32,6 +33,35 @@ public class RespParser {
 
         if (type == '-') {
             return new RespError(readLine());
+        }
+
+        if (type == '$') {
+            int length = Integer.parseInt(readLine());
+
+            byte[] data = new byte[length];
+
+            int totalRead = 0;
+
+            while (totalRead < length) {
+                int bytesRead = input.read(data, totalRead, length - totalRead);
+
+                if (bytesRead == -1) {
+                    throw new IOException("Unexpected end of stream");
+                }
+
+                totalRead += bytesRead;
+            }
+
+            String value = new String(data, StandardCharsets.UTF_8);
+
+            int cr = input.read();
+            int lf = input.read();
+
+            if (cr != '\r' || lf != '\n') {
+                throw new IOException("Expected CRLF after bulk string");
+            }
+
+            return new RespBulkString(value);
         }
 
         throw new IOException("Unsupported RESP type: " + (char) type);
