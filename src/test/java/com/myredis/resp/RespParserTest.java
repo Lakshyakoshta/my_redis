@@ -46,4 +46,23 @@ class RespParserTest {
 
         assertEquals(100, integer.getValue());
     }
+
+    @Test
+    void shouldParseError() throws Exception {
+    
+        String input = "-ERR unknown command\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespValue value = parser.parse();
+    
+        RespError error = (RespError) value;
+    
+        assertEquals("ERR unknown command", error.getMessage());
+    }
 }

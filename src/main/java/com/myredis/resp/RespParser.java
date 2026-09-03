@@ -30,6 +30,10 @@ public class RespParser {
             return new RespInteger(number);
         }
 
+        if (type == '-') {
+            return new RespError(readLine());
+        }
+
         throw new IOException("Unsupported RESP type: " + (char) type);
     }
 
