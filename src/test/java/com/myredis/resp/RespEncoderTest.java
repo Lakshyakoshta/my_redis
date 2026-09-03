@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.io.ByteArrayInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -139,5 +140,37 @@ class RespEncoderTest {
                 output.toString(StandardCharsets.UTF_8);
     
         assertEquals("*0\r\n", result);
+    }
+    @Test
+    void shouldRoundTripArray() throws Exception {
+    
+        String original =
+                "*2\r\n" +
+                "$3\r\n" +
+                "GET\r\n" +
+                "$4\r\n" +
+                "name\r\n";
+    
+        ByteArrayInputStream input =
+                new ByteArrayInputStream(
+                        original.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(input);
+    
+        RespValue value = parser.parse();
+    
+        ByteArrayOutputStream output =
+                new ByteArrayOutputStream();
+    
+        RespEncoder encoder =
+                new RespEncoder(output);
+    
+        encoder.write(value);
+    
+        String result =
+                output.toString(StandardCharsets.UTF_8);
+    
+        assertEquals(original, result);
     }
 }
