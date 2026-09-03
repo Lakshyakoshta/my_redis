@@ -3,7 +3,8 @@ package com.myredis.resp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RespParser {
 
@@ -63,9 +64,21 @@ public class RespParser {
 
             return new RespBulkString(value);
         }
+        if (type == '*') {
+            int count = Integer.parseInt(readLine());
+
+            List<RespValue> values = new ArrayList<>();
+
+            for (int i = 0; i < count; i++) {
+                values.add(parse());
+            }
+
+            return new RespArray(values);
+        }
 
         throw new IOException("Unsupported RESP type: " + (char) type);
     }
+    
 
     private String readLine() throws IOException {
 

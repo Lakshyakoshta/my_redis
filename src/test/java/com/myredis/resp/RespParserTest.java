@@ -119,4 +119,54 @@ class RespParserTest {
     
         assertEquals("hello world", bulkString.getValue());
     }
+    @Test
+    void shouldParseArray() throws Exception {
+    
+        String input =
+                "*2\r\n" +
+                "$3\r\n" +
+                "GET\r\n" +
+                "$4\r\n" +
+                "name\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespValue value = parser.parse();
+    
+        RespArray array = (RespArray) value;
+    
+        assertEquals(2, array.getValues().size());
+    
+        RespBulkString first =
+                (RespBulkString) array.getValues().get(0);
+    
+        RespBulkString second =
+                (RespBulkString) array.getValues().get(1);
+    
+        assertEquals("GET", first.getValue());
+        assertEquals("name", second.getValue());
+    }
+    @Test
+    void shouldParseEmptyArray() throws Exception {
+    
+        String input = "*0\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespValue value = parser.parse();
+    
+        RespArray array = (RespArray) value;
+    
+        assertEquals(0, array.getValues().size());
+    }
 }
