@@ -2,11 +2,13 @@ package com.myredis.resp;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RespParserTest {
 
@@ -245,5 +247,47 @@ class RespParserTest {
         RespBulkString bulkString = (RespBulkString) value;
     
         assertNull(bulkString.getValue());
+    }
+    @Test
+    void shouldRejectInvalidInteger() throws Exception {
+    
+        String input = ":abc\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        assertThrows(NumberFormatException.class, parser::parse);
+    }
+    @Test
+    void shouldRejectIncompleteBulkString() throws Exception {
+    
+        String input = "$5\r\nhel";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        assertThrows(IOException.class, parser::parse);
+    }
+    @Test
+    void shouldRejectInvalidCrLf() throws Exception {
+    
+        String input = "+OK\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        assertThrows(IOException.class, parser::parse);
     }
 }
