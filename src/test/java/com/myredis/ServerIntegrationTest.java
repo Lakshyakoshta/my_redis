@@ -14,6 +14,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+import com.myredis.resp.RespInteger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -348,6 +350,141 @@ class ServerIntegrationTest {
                         result.getValue()
                 );
             }
+        }
+    }
+    @Test
+    void shouldHandleSetGetDeleteLifecycle()
+            throws Exception {
+    
+        try (Socket socket =
+                     new Socket("localhost", 6379)) {
+    
+            InputStream input =
+                    socket.getInputStream();
+    
+            OutputStream output =
+                    socket.getOutputStream();
+    
+            RespParser parser =
+                    new RespParser(input);
+    
+            // -------------------------
+            // SET name Lakshya
+            // -------------------------
+    
+            String setRequest =
+                    "*3\r\n" +
+                    "$3\r\n" +
+                    "SET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n" +
+                    "$7\r\n" +
+                    "Lakshya\r\n";
+    
+            output.write(
+                    setRequest.getBytes(StandardCharsets.UTF_8)
+            );
+    
+            output.flush();
+    
+            RespValue setResponse =
+                    parser.parse();
+    
+            RespSimpleString setResult =
+                    assertInstanceOf(
+                            RespSimpleString.class,
+                            setResponse
+                    );
+    
+            assertEquals(
+                    "OK",
+                    setResult.getValue()
+            );
+    
+            // -------------------------
+            // GET name
+            // -------------------------
+    
+            String getRequest =
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "GET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n";
+    
+            output.write(
+                    getRequest.getBytes(StandardCharsets.UTF_8)
+            );
+    
+            output.flush();
+    
+            RespValue getResponse =
+                    parser.parse();
+    
+            RespBulkString getResult =
+                    assertInstanceOf(
+                            RespBulkString.class,
+                            getResponse
+                    );
+    
+            assertEquals(
+                    "Lakshya",
+                    getResult.getValue()
+            );
+    
+            // -------------------------
+            // DEL name
+            // -------------------------
+    
+            String delRequest =
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "DEL\r\n" +
+                    "$4\r\n" +
+                    "name\r\n";
+    
+            output.write(
+                    delRequest.getBytes(StandardCharsets.UTF_8)
+            );
+    
+            output.flush();
+    
+            RespValue delResponse =
+                    parser.parse();
+    
+            RespInteger delResult =
+                    assertInstanceOf(
+                            RespInteger.class,
+                            delResponse
+                    );
+    
+            assertEquals(
+                    1,
+                    delResult.getValue()
+            );
+    
+            // -------------------------
+            // GET name again
+            // -------------------------
+    
+            output.write(
+                    getRequest.getBytes(StandardCharsets.UTF_8)
+            );
+    
+            output.flush();
+    
+            RespValue missingResponse =
+                    parser.parse();
+    
+            RespBulkString missingResult =
+                    assertInstanceOf(
+                            RespBulkString.class,
+                            missingResponse
+                    );
+    
+            assertNull(
+                    missingResult.getValue()
+            );
         }
     }
 }
