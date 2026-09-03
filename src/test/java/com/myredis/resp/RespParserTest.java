@@ -27,4 +27,23 @@ class RespParserTest {
 
         assertEquals("OK", simpleString.getValue());
     }
+
+    @Test
+    void shouldParseInteger() throws Exception {
+
+        String input = ":100\r\n";
+
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+
+        RespParser parser = new RespParser(stream);
+
+        RespValue value = parser.parse();
+
+        RespInteger integer = (RespInteger) value;
+
+        assertEquals(100, integer.getValue());
+    }
 }

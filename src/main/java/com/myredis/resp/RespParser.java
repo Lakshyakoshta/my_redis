@@ -24,6 +24,12 @@ public class RespParser {
             return new RespSimpleString(readLine());
         }
 
+        if (type == ':') {
+            String value = readLine();
+            long number = Long.parseLong(value);
+            return new RespInteger(number);
+        }
+
         throw new IOException("Unsupported RESP type: " + (char) type);
     }
 
