@@ -1,0 +1,30 @@
+package com.myredis.resp;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class RespParserTest {
+
+    @Test
+    void shouldParseSimpleString() throws Exception {
+
+        String input = "+OK\r\n";
+
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+
+        RespParser parser = new RespParser(stream);
+
+        RespValue value = parser.parse();
+
+        RespSimpleString simpleString = (RespSimpleString) value;
+
+        assertEquals("OK", simpleString.getValue());
+    }
+}
