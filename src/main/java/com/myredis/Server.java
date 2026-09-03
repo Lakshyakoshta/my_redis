@@ -1,11 +1,18 @@
 package com.myredis;
 
+import com.myredis.command.CommandDispatcher;
+import com.myredis.resp.RespArray;
+import com.myredis.resp.RespEncoder;
+import com.myredis.resp.RespError;
+import com.myredis.resp.RespParser;
+import com.myredis.resp.RespValue;
+import com.myredis.store.DataStore;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public class Server {
 
@@ -13,39 +20,62 @@ public class Server {
 
         int port = 6379;
 
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        DataStore store = new DataStore();
 
-            System.out.println("Our Redis server is listening on port " + port);
+        CommandDispatcher dispatcher =
+                new CommandDispatcher(store);
+
+        try (ServerSocket serverSocket =
+                     new ServerSocket(port)) {
+
+            System.out.println(
+                    "MyRedis server is listening on port " + port
+            );
 
             while (true) {
 
-                Socket clientSocket = serverSocket.accept();
+                Socket clientSocket =
+                        serverSocket.accept();
 
                 System.out.println("Client connected!");
 
-                InputStream input = clientSocket.getInputStream();
-                OutputStream output = clientSocket.getOutputStream();
+                try (clientSocket) {
 
-                byte[] buffer = new byte[1024];
+                    InputStream input =
+                            clientSocket.getInputStream();
 
-                int bytesRead = input.read(buffer);
+                    OutputStream output =
+                            clientSocket.getOutputStream();
 
-                String request = new String(
-                        buffer,
-                        0,
-                        bytesRead,
-                        StandardCharsets.UTF_8
-                );
+                    RespParser parser =
+                            new RespParser(input);
 
-                System.out.println("Received: " + request);
+                    RespEncoder encoder =
+                            new RespEncoder(output);
 
-                output.write("PONG\r\n".getBytes(StandardCharsets.UTF_8));
-                output.flush();
+                    RespValue request =
+                            parser.parse();
 
-                clientSocket.close();
+                    if (!(request instanceof RespArray array)) {
+
+                        encoder.write(
+                                new RespError(
+                                        "ERR command must be an array"
+                                )
+                        );
+
+                        continue;
+                    }
+
+                    RespValue response =
+                            dispatcher.dispatch(array);
+
+                    encoder.write(response);
+                }
             }
 
         } catch (IOException e) {
+
             e.printStackTrace();
         }
     }

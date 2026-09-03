@@ -5,6 +5,8 @@ import com.myredis.resp.RespArray;
 import com.myredis.resp.RespEncoder;
 import com.myredis.resp.RespParser;
 import com.myredis.resp.RespValue;
+import com.myredis.store.DataStore;
+
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -38,7 +40,7 @@ class ServerIntegrationTest {
                 (RespArray) parsedRequest;
 
         CommandDispatcher dispatcher =
-                new CommandDispatcher();
+                new CommandDispatcher(new DataStore());
 
         RespValue response =
                 dispatcher.dispatch(command);

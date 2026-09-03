@@ -2,6 +2,8 @@ package com.myredis.command;
 
 import com.myredis.resp.RespSimpleString;
 import com.myredis.resp.RespValue;
+import com.myredis.store.DataStore;
+
 import org.junit.jupiter.api.Test;
 
 import com.myredis.resp.RespError;
@@ -20,7 +22,7 @@ class CommandDispatcherTest {
     void shouldReturnErrorForUnknownCommand() {
     
         CommandDispatcher dispatcher =
-                new CommandDispatcher();
+                new CommandDispatcher(new DataStore());
     
         RespArray request =
             new RespArray(
@@ -44,7 +46,7 @@ class CommandDispatcherTest {
     void shouldDispatchPing() {
     
         CommandDispatcher dispatcher =
-                new CommandDispatcher();
+                new CommandDispatcher(new DataStore());
     
         RespArray request =
                 new RespArray(
@@ -68,7 +70,7 @@ class CommandDispatcherTest {
     void shouldRejectEmptyCommand() {
     
         CommandDispatcher dispatcher =
-                new CommandDispatcher();
+                new CommandDispatcher(new DataStore());
     
         RespArray request =
                 new RespArray(List.of());
