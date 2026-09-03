@@ -7,8 +7,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.ourredis</groupId>
-    <artifactId>our-redis</artifactId>
+    <groupId>com.myredis</groupId>
+    <artifactId>my-redis</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
