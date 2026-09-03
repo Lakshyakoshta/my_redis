@@ -18,33 +18,81 @@ public class TestClient {
             OutputStream output =
                     socket.getOutputStream();
 
-            String request =
+            sendCommand(
+                    output,
                     "*1\r\n" +
                     "$4\r\n" +
-                    "PING\r\n";
-
-            output.write(
-                    request.getBytes(StandardCharsets.UTF_8)
+                    "PING\r\n"
             );
 
-            output.flush();
+            readResponse(input);
 
-            byte[] buffer = new byte[1024];
-
-            int bytesRead =
-                    input.read(buffer);
-
-            String response =
-                    new String(
-                            buffer,
-                            0,
-                            bytesRead,
-                            StandardCharsets.UTF_8
-                    );
-
-            System.out.println(
-                    "Server response: " + response
+            sendCommand(
+                    output,
+                    "*3\r\n" +
+                    "$3\r\n" +
+                    "SET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n" +
+                    "$7\r\n" +
+                    "Lakshya\r\n"
             );
+
+            readResponse(input);
+
+            sendCommand(
+                    output,
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "GET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n"
+            );
+
+            readResponse(input);
+
+            sendCommand(
+                    output,
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "GET\r\n" +
+                    "$3\r\n" +
+                    "age\r\n"
+            );
+
+            readResponse(input);
         }
+    }
+
+    private static void sendCommand(
+            OutputStream output,
+            String request) throws Exception {
+
+        output.write(
+                request.getBytes(StandardCharsets.UTF_8)
+        );
+
+        output.flush();
+    }
+
+    private static void readResponse(
+            InputStream input) throws Exception {
+
+        byte[] buffer = new byte[1024];
+
+        int bytesRead =
+                input.read(buffer);
+
+        String response =
+                new String(
+                        buffer,
+                        0,
+                        bytesRead,
+                        StandardCharsets.UTF_8
+                );
+
+        System.out.println(
+                "Server response: " + response
+        );
     }
 }
