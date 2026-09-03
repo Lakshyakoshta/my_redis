@@ -86,4 +86,33 @@ class CommandDispatcherTest {
                 error.getMessage()
         );
     }
+    @Test
+    void shouldDispatchGet() {
+    
+        DataStore store = new DataStore();
+    
+        store.set("name", "Lakshya");
+    
+        CommandDispatcher dispatcher =
+                new CommandDispatcher(store);
+    
+        RespArray request =
+                new RespArray(
+                        List.of(
+                                new RespBulkString("GET"),
+                                new RespBulkString("name")
+                        )
+                );
+    
+        RespValue response =
+                dispatcher.dispatch(request);
+    
+        RespBulkString bulkString =
+                assertInstanceOf(RespBulkString.class, response);
+    
+        assertEquals(
+                "Lakshya",
+                bulkString.getValue()
+        );
+    }
 }
