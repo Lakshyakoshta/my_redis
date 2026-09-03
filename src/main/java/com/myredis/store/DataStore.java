@@ -20,7 +20,7 @@ public class DataStore {
         return data.containsKey(key);
     }
 
-    public void delete(String key) {
-        data.remove(key);
+    public boolean delete(String key) {
+        return data.remove(key) != null;
     }
 }

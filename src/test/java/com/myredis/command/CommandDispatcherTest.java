@@ -7,13 +7,14 @@ import com.myredis.store.DataStore;
 import org.junit.jupiter.api.Test;
 
 import com.myredis.resp.RespError;
-
+import com.myredis.resp.RespInteger;
 import com.myredis.resp.RespArray;
 import com.myredis.resp.RespBulkString;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class CommandDispatcherTest {
@@ -113,6 +114,43 @@ class CommandDispatcherTest {
         assertEquals(
                 "Lakshya",
                 bulkString.getValue()
+        );
+    }
+    @Test
+    void shouldDispatchDel() {
+    
+        DataStore store =
+                new DataStore();
+    
+        store.set("name", "Lakshya");
+    
+        CommandDispatcher dispatcher =
+                new CommandDispatcher(store);
+    
+        RespArray request =
+                new RespArray(
+                        List.of(
+                                new RespBulkString("DEL"),
+                                new RespBulkString("name")
+                        )
+                );
+    
+        RespValue response =
+                dispatcher.dispatch(request);
+    
+        RespInteger result =
+                assertInstanceOf(
+                        RespInteger.class,
+                        response
+                );
+    
+        assertEquals(
+                1,
+                result.getValue()
+        );
+    
+        assertNull(
+                store.get("name")
         );
     }
 }

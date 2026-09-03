@@ -19,6 +19,7 @@ public class CommandDispatcher {
         commands.put("PING", new PingCommand());
         commands.put("SET", new SetCommand(store));
         commands.put("GET", new GetCommand(store));
+        commands.put("DEL", new DelCommand(store));
     }
 
     public RespValue dispatch(RespArray request) {

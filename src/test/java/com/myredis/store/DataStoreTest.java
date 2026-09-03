@@ -52,7 +52,9 @@ class DataStoreTest {
 
         store.set("name", "Lakshya");
 
-        store.delete("name");
+        assertTrue(
+                store.delete("name")
+        );
 
         assertNull(
                 store.get("name")
@@ -119,5 +121,15 @@ class DataStoreTest {
                 );
             }
         }
+    }
+    @Test
+    void shouldReturnFalseWhenDeletingMissingKey() {
+    
+        DataStore store =
+                new DataStore();
+    
+        assertFalse(
+                store.delete("unknown")
+        );
     }
 }
