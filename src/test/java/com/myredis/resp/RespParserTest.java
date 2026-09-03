@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class RespParserTest {
 
@@ -168,5 +169,81 @@ class RespParserTest {
         RespArray array = (RespArray) value;
     
         assertEquals(0, array.getValues().size());
+    }
+    @Test
+    void shouldParseNegativeInteger() throws Exception {
+    
+        String input = ":-42\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespValue value = parser.parse();
+    
+        RespInteger integer = (RespInteger) value;
+    
+        assertEquals(-42, integer.getValue());
+    }
+    @Test
+    void shouldParseNestedArray() throws Exception {
+    
+        String input =
+                "*2\r\n" +
+                "*2\r\n" +
+                ":1\r\n" +
+                ":2\r\n" +
+                "+OK\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespArray outerArray = (RespArray) parser.parse();
+    
+        assertEquals(2, outerArray.getValues().size());
+    
+        RespArray innerArray =
+                (RespArray) outerArray.getValues().get(0);
+    
+        assertEquals(2, innerArray.getValues().size());
+    
+        RespInteger first =
+                (RespInteger) innerArray.getValues().get(0);
+    
+        RespInteger second =
+                (RespInteger) innerArray.getValues().get(1);
+    
+        assertEquals(1, first.getValue());
+        assertEquals(2, second.getValue());
+    
+        RespSimpleString message =
+                (RespSimpleString) outerArray.getValues().get(1);
+    
+        assertEquals("OK", message.getValue());
+    }
+    @Test
+    void shouldParseNullBulkString() throws Exception {
+    
+        String input = "$-1\r\n";
+    
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)
+                );
+    
+        RespParser parser = new RespParser(stream);
+    
+        RespValue value = parser.parse();
+    
+        RespBulkString bulkString = (RespBulkString) value;
+    
+        assertNull(bulkString.getValue());
     }
 }

@@ -39,6 +39,10 @@ public class RespParser {
         if (type == '$') {
             int length = Integer.parseInt(readLine());
 
+            if (length == -1) {
+                return new RespBulkString(null);
+            }
+
             byte[] data = new byte[length];
 
             int totalRead = 0;
