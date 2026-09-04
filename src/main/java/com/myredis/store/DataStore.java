@@ -8,10 +8,56 @@ public class DataStore {
     private final Map<String, Entry> data =
             new ConcurrentHashMap<>();
 
+    public void set(String key, String value) {
+
+        set(key, value, 0);
+    }
+
+    public void set(
+            String key,
+            String value,
+            long ttlMillis) {
+
+        long expiresAt = 0;
+
+        if (ttlMillis > 0) {
+
+            expiresAt =
+                    System.currentTimeMillis() + ttlMillis;
+        }
+
+        data.put(
+                key,
+                new Entry(value, expiresAt)
+        );
+    }
+
+    public String get(String key) {
+
+        Entry entry =
+                getEntry(key);
+
+        if (entry == null) {
+            return null;
+        }
+
+        return entry.getValue();
+    }
+
+    public boolean exists(String key) {
+
+        return getEntry(key) != null;
+    }
+
+    public boolean delete(String key) {
+
+        return data.remove(key) != null;
+    }
+
     public long ttl(String key) {
 
         Entry entry =
-                data.get(key);
+                getEntry(key);
 
         if (entry == null) {
             return -2;
@@ -37,30 +83,7 @@ public class DataStore {
         return remainingMillis / 1000;
     }
 
-    public void set(String key, String value) {
-
-        set(key, value, 0);
-    }
-
-    public void set(
-            String key,
-            String value,
-            long ttlMillis) {
-
-        long expiresAt = 0;
-
-        if (ttlMillis > 0) {
-            expiresAt =
-                    System.currentTimeMillis() + ttlMillis;
-        }
-
-        data.put(
-                key,
-                new Entry(value, expiresAt)
-        );
-    }
-
-    public String get(String key) {
+    private Entry getEntry(String key) {
 
         Entry entry =
                 data.get(key);
@@ -80,34 +103,6 @@ public class DataStore {
             return null;
         }
 
-        return entry.getValue();
-    }
-
-    public boolean exists(String key) {
-
-        Entry entry =
-                data.get(key);
-
-        if (entry == null) {
-            return false;
-        }
-
-        long expiresAt =
-                entry.getExpiresAt();
-
-        if (expiresAt != 0 &&
-                System.currentTimeMillis() >= expiresAt) {
-
-            data.remove(key);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean delete(String key) {
-
-        return data.remove(key) != null;
+        return entry;
     }
 }
