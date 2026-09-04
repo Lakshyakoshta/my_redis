@@ -10,9 +10,24 @@ public class DataStore {
 
     public void set(String key, String value) {
 
+        set(key, value, 0);
+    }
+
+    public void set(
+            String key,
+            String value,
+            long ttlMillis) {
+
+        long expiresAt = 0;
+
+        if (ttlMillis > 0) {
+            expiresAt =
+                    System.currentTimeMillis() + ttlMillis;
+        }
+
         data.put(
                 key,
-                new Entry(value, 0)
+                new Entry(value, expiresAt)
         );
     }
 
@@ -25,12 +40,41 @@ public class DataStore {
             return null;
         }
 
+        long expiresAt =
+                entry.getExpiresAt();
+
+        if (expiresAt != 0 &&
+                System.currentTimeMillis() >= expiresAt) {
+
+            data.remove(key);
+
+            return null;
+        }
+
         return entry.getValue();
     }
 
     public boolean exists(String key) {
 
-        return data.containsKey(key);
+        Entry entry =
+                data.get(key);
+
+        if (entry == null) {
+            return false;
+        }
+
+        long expiresAt =
+                entry.getExpiresAt();
+
+        if (expiresAt != 0 &&
+                System.currentTimeMillis() >= expiresAt) {
+
+            data.remove(key);
+
+            return false;
+        }
+
+        return true;
     }
 
     public boolean delete(String key) {

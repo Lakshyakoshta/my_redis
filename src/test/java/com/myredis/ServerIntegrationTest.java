@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 class ServerIntegrationTest {
 
     private Server server;
@@ -486,5 +488,104 @@ class ServerIntegrationTest {
                     missingResult.getValue()
             );
         }
+    }
+    @Test
+    void shouldHandleSetWithExpiration() throws Exception {
+    
+        try (Socket socket =
+                     new Socket("localhost", 6379)) {
+    
+            OutputStream output =
+                    socket.getOutputStream();
+    
+            InputStream input =
+                    socket.getInputStream();
+    
+            RespParser parser =
+                    new RespParser(input);
+    
+            // SET name Lakshya EX 1
+            sendCommand(
+                    output,
+                    "*5\r\n" +
+                    "$3\r\n" +
+                    "SET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n" +
+                    "$7\r\n" +
+                    "Lakshya\r\n" +
+                    "$2\r\n" +
+                    "EX\r\n" +
+                    "$1\r\n" +
+                    "1\r\n"
+            );
+    
+            RespValue setResponse =
+                    parser.parse();
+    
+            assertInstanceOf(
+                    RespSimpleString.class,
+                    setResponse
+            );
+    
+            assertEquals(
+                    "OK",
+                    ((RespSimpleString) setResponse).getValue()
+            );
+    
+            // Immediately GET
+            sendCommand(
+                    output,
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "GET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n"
+            );
+    
+            RespValue getResponse =
+                    parser.parse();
+    
+            assertEquals(
+                    "Lakshya",
+                    ((RespBulkString) getResponse).getValue()
+            );
+    
+            // Wait for expiration
+            Thread.sleep(1100);
+    
+            // GET after expiration
+            sendCommand(
+                    output,
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "GET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n"
+            );
+    
+            getResponse =
+                    parser.parse();
+    
+            RespBulkString expiredResponse =
+                    assertInstanceOf(
+                            RespBulkString.class,
+                            getResponse
+                    );
+    
+            assertNull(
+                    expiredResponse.getValue()
+            );
+        }
+    }
+    private void sendCommand(
+            OutputStream output,
+            String request) throws IOException {
+    
+        output.write(
+                request.getBytes(StandardCharsets.UTF_8)
+        );
+    
+        output.flush();
     }
 }

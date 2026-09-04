@@ -132,4 +132,60 @@ class DataStoreTest {
                 store.delete("unknown")
         );
     }
+    @Test
+    void shouldExpireValueAfterTtl() throws Exception {
+    
+        DataStore store =
+                new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya",
+                100
+        );
+    
+        assertEquals(
+                "Lakshya",
+                store.get("name")
+        );
+    
+        Thread.sleep(150);
+    
+        assertNull(
+                store.get("name")
+        );
+    }
+    @Test
+    void shouldKeepValueWhenNoTtlIsSet() {
+    
+        DataStore store =
+                new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya"
+        );
+    
+        assertEquals(
+                "Lakshya",
+                store.get("name")
+        );
+    }
+    @Test
+    void shouldReturnFalseForExpiredKey() throws InterruptedException {
+    
+        DataStore store = new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya",
+                100
+        );
+    
+        assertTrue(store.exists("name"));
+    
+        Thread.sleep(150);
+    
+        assertFalse(store.exists("name"));
+    }
 }
