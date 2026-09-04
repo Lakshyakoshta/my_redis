@@ -8,6 +8,35 @@ public class DataStore {
     private final Map<String, Entry> data =
             new ConcurrentHashMap<>();
 
+    public long ttl(String key) {
+
+        Entry entry =
+                data.get(key);
+
+        if (entry == null) {
+            return -2;
+        }
+
+        long expiresAt =
+                entry.getExpiresAt();
+
+        if (expiresAt == 0) {
+            return -1;
+        }
+
+        long remainingMillis =
+                expiresAt - System.currentTimeMillis();
+
+        if (remainingMillis <= 0) {
+
+            data.remove(key);
+
+            return -2;
+        }
+
+        return remainingMillis / 1000;
+    }
+
     public void set(String key, String value) {
 
         set(key, value, 0);

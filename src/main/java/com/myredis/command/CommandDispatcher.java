@@ -20,6 +20,7 @@ public class CommandDispatcher {
         commands.put("SET", new SetCommand(store));
         commands.put("GET", new GetCommand(store));
         commands.put("DEL", new DelCommand(store));
+        commands.put("TTL", new TtlCommand(store));
     }
 
     public RespValue dispatch(RespArray request) {

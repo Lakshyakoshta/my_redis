@@ -19,8 +19,8 @@ import com.myredis.resp.RespInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.jupiter.api.Assertions.*;
 
 class ServerIntegrationTest {
 
@@ -587,5 +587,69 @@ class ServerIntegrationTest {
         );
     
         output.flush();
+    }
+    @Test
+    void shouldHandleTtlCommand() throws Exception {
+    
+        try (Socket socket =
+                     new Socket("localhost", 6379)) {
+    
+            OutputStream output =
+                    socket.getOutputStream();
+    
+            InputStream input =
+                    socket.getInputStream();
+    
+            RespParser parser =
+                    new RespParser(input);
+    
+            // SET name Lakshya EX 5
+            sendCommand(
+                    output,
+                    "*5\r\n" +
+                    "$3\r\n" +
+                    "SET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n" +
+                    "$7\r\n" +
+                    "Lakshya\r\n" +
+                    "$2\r\n" +
+                    "EX\r\n" +
+                    "$1\r\n" +
+                    "5\r\n"
+            );
+    
+            RespValue setResponse =
+                    parser.parse();
+    
+            assertInstanceOf(
+                    RespSimpleString.class,
+                    setResponse
+            );
+    
+            // TTL name
+            sendCommand(
+                    output,
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "TTL\r\n" +
+                    "$4\r\n" +
+                    "name\r\n"
+            );
+    
+            RespValue ttlResponse =
+                    parser.parse();
+    
+            RespInteger ttl =
+                    assertInstanceOf(
+                            RespInteger.class,
+                            ttlResponse
+                    );
+    
+            assertTrue(
+                    ttl.getValue() >= 4 &&
+                    ttl.getValue() <= 5
+            );
+        }
     }
 }

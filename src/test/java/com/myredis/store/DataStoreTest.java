@@ -188,4 +188,54 @@ class DataStoreTest {
     
         assertFalse(store.exists("name"));
     }
+    @Test
+    void shouldReturnNegativeTwoForMissingKey() {
+    
+        DataStore store = new DataStore();
+    
+        assertEquals(
+                -2,
+                store.ttl("missing")
+        );
+    }
+    @Test
+    void shouldReturnNegativeOneForKeyWithoutExpiration() {
+    
+        DataStore store = new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya"
+        );
+    
+        assertEquals(
+                -1,
+                store.ttl("name")
+        );
+    }
+    @Test
+    void shouldReturnRemainingTtl() throws InterruptedException {
+    
+        DataStore store = new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya",
+                5000
+        );
+    
+        long ttl =
+                store.ttl("name");
+    
+        assertTrue(
+                ttl >= 4 && ttl <= 5
+        );
+    
+        Thread.sleep(5100);
+    
+        assertEquals(
+                -2,
+                store.ttl("name")
+        );
+    }
 }
