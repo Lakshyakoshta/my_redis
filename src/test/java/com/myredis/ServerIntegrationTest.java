@@ -652,4 +652,68 @@ class ServerIntegrationTest {
             );
         }
     }
+    @Test
+    void shouldHandlePttlCommand() throws Exception {
+    
+        try (Socket socket =
+                     new Socket("localhost", 6379)) {
+    
+            OutputStream output =
+                    socket.getOutputStream();
+    
+            InputStream input =
+                    socket.getInputStream();
+    
+            RespParser parser =
+                    new RespParser(input);
+    
+            // SET name Lakshya EX 5
+            sendCommand(
+                    output,
+                    "*5\r\n" +
+                    "$3\r\n" +
+                    "SET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n" +
+                    "$7\r\n" +
+                    "Lakshya\r\n" +
+                    "$2\r\n" +
+                    "EX\r\n" +
+                    "$1\r\n" +
+                    "5\r\n"
+            );
+    
+            RespValue setResponse =
+                    parser.parse();
+    
+            assertInstanceOf(
+                    RespSimpleString.class,
+                    setResponse
+            );
+    
+            // PTTL name
+            sendCommand(
+                    output,
+                    "*2\r\n" +
+                    "$4\r\n" +
+                    "PTTL\r\n" +
+                    "$4\r\n" +
+                    "name\r\n"
+            );
+    
+            RespValue pttlResponse =
+                    parser.parse();
+    
+            RespInteger pttl =
+                    assertInstanceOf(
+                            RespInteger.class,
+                            pttlResponse
+                    );
+    
+            assertTrue(
+                    pttl.getValue() > 0 &&
+                    pttl.getValue() <= 5000
+            );
+        }
+    }
 }
