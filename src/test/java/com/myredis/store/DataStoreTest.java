@@ -238,4 +238,48 @@ class DataStoreTest {
                 store.ttl("name")
         );
     }
+    @Test
+    void shouldReturnRemainingTtlInMilliseconds() {
+    
+        DataStore store = new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya",
+                5000
+        );
+    
+        long pttl =
+                store.pttl("name");
+    
+        assertTrue(
+                pttl > 0 &&
+                pttl <= 5000
+        );
+    }
+    @Test
+    void shouldReturnNegativeOneForPttlOfNonExpiringKey() {
+    
+        DataStore store = new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya"
+        );
+    
+        assertEquals(
+                -1,
+                store.pttl("name")
+        );
+    }
+    @Test
+    void shouldReturnNegativeTwoForPttlOfMissingKey() {
+    
+        DataStore store = new DataStore();
+    
+        assertEquals(
+                -2,
+                store.pttl("missing")
+        );
+    }
 }

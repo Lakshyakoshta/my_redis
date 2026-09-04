@@ -21,6 +21,7 @@ public class CommandDispatcher {
         commands.put("GET", new GetCommand(store));
         commands.put("DEL", new DelCommand(store));
         commands.put("TTL", new TtlCommand(store));
+        commands.put("PTTL", new PttlCommand(store));
     }
 
     public RespValue dispatch(RespArray request) {

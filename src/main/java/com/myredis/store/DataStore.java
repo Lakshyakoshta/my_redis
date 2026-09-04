@@ -83,6 +83,35 @@ public class DataStore {
         return remainingMillis / 1000;
     }
 
+    public long pttl(String key) {
+
+        Entry entry =
+                getEntry(key);
+
+        if (entry == null) {
+            return -2;
+        }
+
+        long expiresAt =
+                entry.getExpiresAt();
+
+        if (expiresAt == 0) {
+            return -1;
+        }
+
+        long remainingMillis =
+                expiresAt - System.currentTimeMillis();
+
+        if (remainingMillis <= 0) {
+
+            data.remove(key);
+
+            return -2;
+        }
+
+        return remainingMillis;
+    }
+
     private Entry getEntry(String key) {
 
         Entry entry =
