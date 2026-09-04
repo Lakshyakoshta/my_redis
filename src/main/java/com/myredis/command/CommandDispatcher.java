@@ -22,6 +22,7 @@ public class CommandDispatcher {
         commands.put("DEL", new DelCommand(store));
         commands.put("TTL", new TtlCommand(store));
         commands.put("PTTL", new PttlCommand(store));
+        commands.put("EXPIRE", new ExpireCommand(store));
     }
 
     public RespValue dispatch(RespArray request) {

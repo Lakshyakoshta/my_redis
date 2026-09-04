@@ -282,4 +282,72 @@ class DataStoreTest {
                 store.pttl("missing")
         );
     }
+    @Test
+    void shouldSetExpirationOnExistingKey() {
+    
+        DataStore store = new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya"
+        );
+    
+        boolean result =
+                store.expire(
+                        "name",
+                        5000
+                );
+    
+        assertTrue(result);
+    
+        long pttl =
+                store.pttl("name");
+    
+        assertTrue(
+                pttl > 0 &&
+                pttl <= 5000
+        );
+    }
+    @Test
+    void shouldReturnFalseWhenExpiringMissingKey() {
+    
+        DataStore store = new DataStore();
+    
+        boolean result =
+                store.expire(
+                        "missing",
+                        5000
+                );
+    
+        assertFalse(result);
+    }
+    @Test
+    void shouldExpireKeyAfterExpireCommand()
+            throws InterruptedException {
+    
+        DataStore store = new DataStore();
+    
+        store.set(
+                "name",
+                "Lakshya"
+        );
+    
+        assertTrue(
+                store.expire(
+                        "name",
+                        100
+                )
+        );
+    
+        assertEquals(
+                "Lakshya",
+                store.get("name")
+        );
+    
+        Thread.sleep(150);
+    
+        assertNull(
+                store.get("name")
+        );
+    }
 }

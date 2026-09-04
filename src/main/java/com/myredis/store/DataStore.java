@@ -112,6 +112,31 @@ public class DataStore {
         return remainingMillis;
     }
 
+    public boolean expire(
+            String key,
+            long ttlMillis) {
+
+        Entry entry =
+                getEntry(key);
+
+        if (entry == null) {
+            return false;
+        }
+
+        long expiresAt =
+                System.currentTimeMillis() + ttlMillis;
+
+        data.put(
+                key,
+                new Entry(
+                        entry.getValue(),
+                        expiresAt
+                )
+        );
+
+        return true;
+    }
+
     private Entry getEntry(String key) {
 
         Entry entry =

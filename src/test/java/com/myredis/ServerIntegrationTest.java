@@ -716,4 +716,155 @@ class ServerIntegrationTest {
             );
         }
     }
+    @Test
+    void shouldHandleExpireCommand() throws Exception {
+    
+        try (Socket socket =
+                     new Socket("localhost", 6379)) {
+    
+            OutputStream output =
+                    socket.getOutputStream();
+    
+            InputStream input =
+                    socket.getInputStream();
+    
+            RespParser parser =
+                    new RespParser(input);
+    
+            // SET name Lakshya
+            sendCommand(
+                    output,
+                    "*3\r\n" +
+                    "$3\r\n" +
+                    "SET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n" +
+                    "$7\r\n" +
+                    "Lakshya\r\n"
+            );
+    
+            RespValue setResponse =
+                    parser.parse();
+    
+            assertInstanceOf(
+                    RespSimpleString.class,
+                    setResponse
+            );
+    
+            // EXPIRE name 5
+            sendCommand(
+                    output,
+                    "*3\r\n" +
+                    "$6\r\n" +
+                    "EXPIRE\r\n" +
+                    "$4\r\n" +
+                    "name\r\n" +
+                    "$1\r\n" +
+                    "5\r\n"
+            );
+    
+            RespValue expireResponse =
+                    parser.parse();
+    
+            RespInteger expireResult =
+                    assertInstanceOf(
+                            RespInteger.class,
+                            expireResponse
+                    );
+    
+            assertEquals(
+                    1,
+                    expireResult.getValue()
+            );
+    
+            // TTL name
+            sendCommand(
+                    output,
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "TTL\r\n" +
+                    "$4\r\n" +
+                    "name\r\n"
+            );
+    
+            RespValue ttlResponse =
+                    parser.parse();
+    
+            RespInteger ttl =
+                    assertInstanceOf(
+                            RespInteger.class,
+                            ttlResponse
+                    );
+    
+            assertTrue(
+                    ttl.getValue() >= 4 &&
+                    ttl.getValue() <= 5
+            );
+    
+            // GET name
+            sendCommand(
+                    output,
+                    "*2\r\n" +
+                    "$3\r\n" +
+                    "GET\r\n" +
+                    "$4\r\n" +
+                    "name\r\n"
+            );
+    
+            RespValue getResponse =
+                    parser.parse();
+    
+            RespBulkString value =
+                    assertInstanceOf(
+                            RespBulkString.class,
+                            getResponse
+                    );
+    
+            assertEquals(
+                    "Lakshya",
+                    value.getValue()
+            );
+        }
+    }
+    @Test
+    void shouldReturnZeroWhenExpiringMissingKey() throws Exception {
+    
+        try (Socket socket =
+                     new Socket("localhost", 6379)) {
+    
+            OutputStream output =
+                    socket.getOutputStream();
+    
+            InputStream input =
+                    socket.getInputStream();
+    
+            RespParser parser =
+                    new RespParser(input);
+    
+            sendCommand(
+                    output,
+                    "*3\r\n" +
+                    "$6\r\n" +
+                    "EXPIRE\r\n" +
+                    "$7\r\n" +
+                    "missing\r\n" +
+                    "$1\r\n" +
+                    "5\r\n"
+            );
+    
+            RespValue response =
+                    parser.parse();
+    
+            RespInteger result =
+                    assertInstanceOf(
+                            RespInteger.class,
+                            response
+                    );
+    
+            assertEquals(
+                    0,
+                    result.getValue()
+            );
+        }
+    }
 }
